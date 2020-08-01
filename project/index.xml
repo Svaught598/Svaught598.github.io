@@ -5,7 +5,7 @@
     <link>/project/</link>
       <atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
     <description>Projects</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Wed, 27 Apr 2016 00:00:00 +0000</lastBuildDate>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Sat, 01 Aug 2020 11:21:59 -0700</lastBuildDate>
     <image>
       <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
       <title>Projects</title>
@@ -13,26 +13,26 @@
     </image>
     
     <item>
-      <title>WetLabApp</title>
-      <link>/project/internal-project/wetlabapp/</link>
-      <pubDate>Wed, 27 Apr 2016 00:00:00 +0000</pubDate>
-      <guid>/project/internal-project/wetlabapp/</guid>
+      <title>CHIP-8 Emulator</title>
+      <link>/project/chip8/</link>
+      <pubDate>Sat, 01 Aug 2020 11:21:59 -0700</pubDate>
+      <guid>/project/chip8/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>CHIP-8 Interpreter</title>
-      <link>/project/internal-project/chip8emulator/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>/project/internal-project/chip8emulator/</guid>
+      <title>WetLabApp</title>
+      <link>/project/wetlab/wetlabapp/</link>
+      <pubDate>Wed, 27 Apr 2016 00:00:00 +0000</pubDate>
+      <guid>/project/wetlab/wetlabapp/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Infection Simulation</title>
-      <link>/project/internal-project/infection-simulation/</link>
+      <link>/project/infection/infection-simulation/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>/project/internal-project/infection-simulation/</guid>
+      <guid>/project/infection/infection-simulation/</guid>
       <description></description>
     </item>
     
