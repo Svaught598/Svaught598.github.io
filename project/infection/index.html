@@ -686,15 +686,15 @@
 
     <div class="article-style">
       <h1 id="about-the-project">About The Project</h1>
-<p>This was one of the projects I did during my Computational Physics course at Texas A&amp;M University-Commerce. The Physics was a ton of fun; learning the syntax for gnuplot wasn&rsquo;t. Here&rsquo;s a quick example for the terribly unintuitive syntax (and yes, the repeated colons are necessary):</p>
+<p>This was one of the projects I did during my Computational Physics course at Texas A&amp;M University-Commerce. The programming and physics were a ton of fun! &hellip;learning the syntax for gnuplot wasn&rsquo;t. Here&rsquo;s a quick example for the terribly unintuitive syntax (and yes, the repeated colons are necessary):</p>
 <pre><code>plot infile using 2:xtic(1) every :::1::1 t &quot;Healthy&quot; lc rgb &quot;blue&quot;, \
          '' using 3 every :::1::1 t &quot;Infected&quot; lc rgb &quot;dark-green&quot;, \
          '' using 4 every :::1::1 t &quot;Recovered&quot; lc rgb &quot;dark-yellow&quot;
 </code></pre>
-<h1 id="problems-i-faced">Problems I Faced</h1>
-<p>Honestly, the bulk of the problems I had with this project revolved around using this plotting software. The learning curve is comparable to the base of a cliff; it was impossibly complex at first and all at once became straightforward and simple. I actually prefer gnuplot over the more popular matplotlib after this project since the software is so flexible with plotting data. I seriously recommend gnuplot to anyone in the scientific community as it made a lot of things normally complex in python very simple.</p>
-<p>I did have one minor problem: 10 seconds of simulation took 10 minutes to prepare. This really wasn&rsquo;t a huge issue, but I liked having instant feeback when I made changes to the project, so I took a profiler to my code and found that the biggest bottleneck was with IO. Apparently opening and closing files takes a lot of time. News to me. I circumvented this by storing all the data in one file, using <code>\n</code> as a delimeter to differentiate between clusters of particles at different timesteps, but alas, the program still took 8 minutes to prepare 10 seconds!</p>
-<p>The profiler wasn&rsquo;t able to find any more glaring issues with my code, but I realized that plotting any constiuent timestep was an orthogonal task to all others. This meant that I could call all <code>plot(timestep)</code> in parallel with each other and not worry about complicated stuff like race conditions. Implementing it was super easy, but it also meant that I had to start storing data for timesteps in separate files to keep things thread safe (probably didn&rsquo;t <em>have</em> to, but I didn&rsquo;t know gnuplot well enough to come up with a better solution). I made the changes, and got a speed increase of X10! Now, rendering 10 seconds of simulation was just short of a minute!</p>
+<h1 id="problems">Problems</h1>
+<p>Honestly, the bulk of the problems I had with this project revolved around using this plotting software. The learning curve is comparable to the base of a cliff; it was impossibly complex at first and all at once became straightforward and simple. I actually prefer gnuplot over the more popular matplotlib after this project since the software is so flexible with plotting data. If there are any academics reading this, I implore you: learn how to use this software. It made a lot of things - normally complex in Python/Matplotlib - very simple.</p>
+<p>I did have one minor problem unrelated to Gnuplot: 10 seconds of simulation took 10 minutes to prepare. This really wasn&rsquo;t a huge issue, but I liked having instant feeback when I made changes to the project, so I took a profiler to my code and found that the biggest bottleneck was with IO. Apparently opening and closing files takes a lot of time. News to me. I circumvented this by storing all the data in one file, using <code>\n</code> as a delimeter to differentiate between clusters of particles at different timesteps, but alas, the program still took 8 minutes to prepare 10 seconds!</p>
+<p>The profiler now said that the bottleneck was invoking a subprocess with gnuplot. I realized that plotting any constiuent timestep was an orthogonal task to all others. This meant that I could call all <code>plot(timestep)</code> in parallel with each other and not worry about complicated stuff like race conditions. Implementing it was super easy, but it also meant that I had to start storing data for timesteps in separate files to keep things thread safe (probably didn&rsquo;t <em>have</em> to, but I didn&rsquo;t know gnuplot well enough to come up with a better solution). It also meant that each plotting task would require it&rsquo;s own instance of Gnuplot, so there was a very real chance it would remain slow, or worse: <em>become even slower</em>. I made the changes, and got a speed increase of X10! Now, rendering 10 seconds of simulation was just short of a minute!</p>
 
     </div>
 
@@ -974,8 +974,8 @@
 
   <p class="powered-by">
     
-    Published with
-    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic Website Builder</a>
+    Built with
+    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic</a>
     
 
     

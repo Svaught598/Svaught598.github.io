@@ -253,9 +253,9 @@
   <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
-      <meta property="article:published_time" content="2016-04-27T00:00:00&#43;00:00">
+      <meta property="article:published_time" content="2020-03-27T00:00:00&#43;00:00">
     
-    <meta property="article:modified_time" content="2016-04-27T00:00:00&#43;00:00">
+    <meta property="article:modified_time" content="2020-03-27T00:00:00&#43;00:00">
   
 
   
@@ -281,8 +281,8 @@
   },
   "headline": "WetLabApp",
   
-  "datePublished": "2016-04-27T00:00:00Z",
-  "dateModified": "2016-04-27T00:00:00Z",
+  "datePublished": "2020-03-27T00:00:00Z",
+  "dateModified": "2020-03-27T00:00:00Z",
   
   "author": {
     "@type": "Person",
@@ -588,7 +588,7 @@
     
       
     
-    Apr 27, 2016
+    Mar 27, 2020
   </span>
   
 
@@ -657,22 +657,6 @@
 
 
 
-  
-  
-  
-    
-  
-  
-  
-  
-  
-    
-  
-  <a class="btn btn-outline-primary my-1 mr-1" href="https://twitter.com/georgecushen" target="_blank" rel="noopener">
-    <i class="fab fa-twitter mr-1"></i>
-    Follow
-  </a>
-
 
 </div>
 
@@ -685,7 +669,13 @@
   <div class="article-container">
 
     <div class="article-style">
-      
+      <h1 id="about-the-project">About The Project</h1>
+<p>Other than writing small scripts to perform very specific tasks, this was my first real programming project. I had some difficulties finding applications to make solutions for my research (most applications do not perform the calculations that I needed), so I decided to make my own. I would commonly spend 30-40 minutes just doing calculations, then more time doing them again just to ensure that they were correct. It was during this project that I realized that I truly loved software development.</p>
+<h1 id="problems">Problems</h1>
+<p>So the biggest problem I had starting out is a problem I wouldn&rsquo;t even dream of having today. I couldn&rsquo;t figure out how to organize packages and functions to make the code <code>modular</code>. I spent about a month messing around with a broken pile of conditionals and magic values, and eventually gave up. The project wasn&rsquo;t even functional, and my database was a crappy JSON file. Did I mention that I didn&rsquo;t even know what a class was? I thought, <em>&ldquo;Maybe this whole software thing isn&rsquo;t right for me&rdquo;.</em></p>
+<p>Some time passed, and I stumbled upon the idea of architecture in code. For as long as I pursued this project, I hadn&rsquo;t looked into reading about programming practices at all, so the fact that there are agreed upon codebase structures really shocked me. I read more about Object-Oriented Programming, and became familiar with some of the software design patterns commonly used. I quickly decided to refactor the entire codebase using an MVC architecture. After some time, adding features became super easy! The project went from being painfully unmaintainable to functional and even organized. I&rsquo;m sure there are a lot of areas that could be designed better, but just making the change to modular code made such a huge difference that I&rsquo;m not even sure what those areas might be.</p>
+<p>The only other major challenge was handling dependencies. I used Python and the Kivy framework to build this project, but switched dev machines halfway through. This resulted in a new installation of Kivy that was different from the prior one. I had no idea at the time, and never implemented unit tests, so I didn&rsquo;t catch the issue until I had already built on top of the new API. I ended up with an application that was built with two incompatible versions of Kivy, that was able to be run on <strong>zero</strong> platforms. I fixed it <em>eventually</em>. Needless to say, I understood the value of unit testing and dependency management after this absolute fiasco.</p>
+
     </div>
 
     
@@ -964,8 +954,8 @@
 
   <p class="powered-by">
     
-    Published with
-    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic Website Builder</a>
+    Built with
+    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic</a>
     
 
     
