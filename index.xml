@@ -37,7 +37,17 @@
       <link>/project/infection/</link>
       <pubDate>Sat, 18 Apr 2020 00:00:00 +0000</pubDate>
       <guid>/project/infection/</guid>
-      <description></description>
+      <description>&lt;h1 id=&#34;about-the-project&#34;&gt;About The Project&lt;/h1&gt;
+&lt;p&gt;This was one of the projects I did during my Computational Physics course at Texas A&amp;amp;M University-Commerce. The Physics was a ton of fun; learning the syntax for gnuplot wasn&amp;rsquo;t. Here&amp;rsquo;s a quick example for the terribly unintuitive syntax (and yes, the repeated colons are necessary):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;plot infile using 2:xtic(1) every :::1::1 t &amp;quot;Healthy&amp;quot; lc rgb &amp;quot;blue&amp;quot;, \
+         &#39;&#39; using 3 every :::1::1 t &amp;quot;Infected&amp;quot; lc rgb &amp;quot;dark-green&amp;quot;, \
+         &#39;&#39; using 4 every :::1::1 t &amp;quot;Recovered&amp;quot; lc rgb &amp;quot;dark-yellow&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;problems-i-faced&#34;&gt;Problems I Faced&lt;/h1&gt;
+&lt;p&gt;Honestly, the bulk of the problems I had with this project revolved around using this plotting software. The learning curve is comparable to the base of a cliff; it was impossibly complex at first and all at once became straightforward and simple. I actually prefer gnuplot over the more popular matplotlib after this project since the software is so flexible with plotting data. I seriously recommend gnuplot to anyone in the scientific community as it made a lot of things normally complex in python very simple.&lt;/p&gt;
+&lt;p&gt;I did have one minor problem: 10 seconds of simulation took 10 minutes to prepare. This really wasn&amp;rsquo;t a huge issue, but I liked having instant feeback when I made changes to the project, so I took a profiler to my code and found that the biggest bottleneck was with IO. Apparently opening and closing files takes a lot of time. News to me. I circumvented this by storing all the data in one file, using &lt;code&gt;\n&lt;/code&gt; as a delimeter to differentiate between clusters of particles at different timesteps, but alas, the program still took 8 minutes to prepare 10 seconds!&lt;/p&gt;
+&lt;p&gt;The profiler wasn&amp;rsquo;t able to find any more glaring issues with my code, but I realized that plotting any constiuent timestep was an orthogonal task to all others. This meant that I could call all &lt;code&gt;plot(timestep)&lt;/code&gt; in parallel with each other and not worry about complicated stuff like race conditions. Implementing it was super easy, but it also meant that I had to start storing data for timesteps in separate files to keep things thread safe (probably didn&amp;rsquo;t &lt;em&gt;have&lt;/em&gt; to, but I didn&amp;rsquo;t know gnuplot well enough to come up with a better solution). I made the changes, and got a speed increase of X10! Now, rendering 10 seconds of simulation was just short of a minute!&lt;/p&gt;
+</description>
     </item>
     
     <item>
