@@ -5,12 +5,138 @@
     <link>/post/</link>
       <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     <description>Posts</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Fri, 21 Aug 2020 16:15:43 -0700</lastBuildDate>
     <image>
       <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
       <title>Posts</title>
       <link>/post/</link>
     </image>
+    
+    <item>
+      <title>The Maximum Subarray Problem</title>
+      <link>/post/max_subarray/</link>
+      <pubDate>Fri, 21 Aug 2020 16:15:43 -0700</pubDate>
+      <guid>/post/max_subarray/</guid>
+      <description>&lt;hr&gt;
+&lt;p&gt;This problem is a classic. Or so I&amp;rsquo;m told. The maximum subarray problem is involves finding the maximum sum out of all contiguous subarrays. It&amp;rsquo;s one of those problems that seems straightforward, and then boom - complicated edge cases seemingly appear from the heavens to say &amp;ldquo;Not so fast!&amp;rdquo;. But that&amp;rsquo;s the essence of algorithm problems, right? They assess a developer&amp;rsquo;s ability to see beyond the scope of some given test cases and construct a robust solution.&lt;/p&gt;
+&lt;h2 id=&#34;the-problem&#34;&gt;The Problem&lt;/h2&gt;
+&lt;hr&gt;
+&lt;p&gt;Given an integer array &lt;code&gt;nums&lt;/code&gt;, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.&lt;/p&gt;
+&lt;p&gt;Example:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Input:&lt;/strong&gt; &lt;code&gt;[-2, 1,-3, 4,-1, 2, 1,-5, 4]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Output:&lt;/strong&gt; &lt;code&gt;6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Explanation:&lt;/strong&gt; &lt;code&gt;[ 4,-1, 2, 1]&lt;/code&gt; has the largest sum of 6.
+&lt;/br&gt;
+&lt;/br&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;a-first-solution&#34;&gt;A First Solution&lt;/h2&gt;
+&lt;hr&gt;
+&lt;p&gt;So this looks like a great problem to use prefix sums, right? You can iterate over the array and keep track of the minimum and maximum prefix sums you&amp;rsquo;ve encountered, and then &lt;code&gt;max_prefix - min_prefix&lt;/code&gt; will give you the largest sum! Just look at the prefix sum array for our example below:
+&lt;/br&gt;
+&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;Prefix Sum Array:&lt;code&gt;[-2,-1,-4, 0,-1, 1, 2,-3, 2]&lt;/code&gt;
+&lt;/br&gt;
+&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;Our answer is simply &lt;code&gt;2-(-4)=6&lt;/code&gt;. This works because the difference in two prefix sums gives you the sum of all elements between where &lt;code&gt;max_prefix&lt;/code&gt; and &lt;code&gt;min_prefix&lt;/code&gt; are located. Straightforward. time to code it up..
+&lt;/br&gt;
+&lt;/br&gt;&lt;/p&gt;
+&lt;h2 id=&#34;not-so-fast&#34;&gt;&amp;ldquo;Not so fast!&amp;rdquo;&lt;/h2&gt;
+&lt;hr&gt;
+&lt;p&gt;You probably already found the fault in my reasoning, but I was not so lucky to see the issue until I had written code. There are some cases that I hadn&amp;rsquo;t considered:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;What happens if the list is only one element? Then &lt;code&gt;max_prefix&lt;/code&gt; and &lt;code&gt;min_prefix&lt;/code&gt; are the same, so you get a return of 0. This isn&amp;rsquo;t correct!&lt;/li&gt;
+&lt;li&gt;Suppose you have an array &lt;code&gt;[-2, 1,-3, 4,-1, 2, 1,-5,-9]&lt;/code&gt;. Now the &lt;code&gt;min_prefix&lt;/code&gt; occurs &lt;em&gt;after&lt;/em&gt; the &lt;code&gt;max_prefix&lt;/code&gt;! Obviously the answer is the same as in the given example, so this is incorrect.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is the motive behind algorithm questions - can you handle the ambiguity? Programming a solution to a problem only works when the problem is &lt;em&gt;well-defined&lt;/em&gt;, and it&amp;rsquo;s usually up to the developer to define what the scope is. If our given array was guaranteed to have at least two elements along with &lt;code&gt;min_prefix&lt;/code&gt; occuring before &lt;code&gt;max_prefix&lt;/code&gt;, then this solution would be ideal! Unfortunately, this is not the case for the problem on Leetcode: My original solution failed for the second edge case listed.&lt;/p&gt;
+&lt;h2 id=&#34;the-solution-to-our-solution&#34;&gt;The Solution to our &amp;ldquo;Solution&amp;rdquo;&lt;/h2&gt;
+&lt;hr&gt;
+&lt;p&gt;But alas, there is hope! The simple solution is two use a conditional to filter the first edge case, and use the current &lt;code&gt;prefix_sum&lt;/code&gt; instead of &lt;code&gt;max_prefix&lt;/code&gt;. Because the current &lt;code&gt;prefix_sum&lt;/code&gt; is always ahead of &lt;code&gt;min_prefix&lt;/code&gt; we never have to deal with the second edge case. At each point in the iteration we take the max of two values: the current &lt;code&gt;result&lt;/code&gt; and &lt;code&gt;prefix_sum - min_prefix&lt;/code&gt;. If the current prefix sum is lower than the minimum prefix sum encountered, we update &lt;code&gt;min_prefix&lt;/code&gt;. Now we can implement a solution using prefix sums! Before we do so, it helps to go ahead and write down all the contraints for the problem, just so we don&amp;rsquo;t have to deal with any more unexpected edge cases:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;input array &lt;code&gt;nums&lt;/code&gt; is always at least one element long&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Wow, not many constraints! This is &lt;em&gt;the reason&lt;/em&gt; problem is unecesarily tricky; It is very easy to underestimate the complexity of open-ended problems. Anyway, here&amp;rsquo;s the implementation using prefix sums:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;def maxSubArray(self, nums):
+        &amp;quot;&amp;quot;&amp;quot;
+        Finds maximum sum of all contiguous subarrays
+        using prefix sums!
+
+        input:
+            `nums`: array of integers
+        
+        returns:
+            `result`: integer
+        &amp;quot;&amp;quot;&amp;quot;
+        # edge case, list is one element long
+        if len(nums) == 1:
+            return nums[0]
+        
+        # Initialize variables
+        min_prefix = 0
+        prefix_sum = 0
+        result = -float(inf)
+        
+        # compute prefix sum, find sum of subarray, update min_prefix
+        for num in nums:
+            prefix_sum += num
+            result = max(result, prefix_sum - min_prefix)
+            min_prefix = min(min_prefix, prefix_sum)
+            
+        return result
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;a-second-solution&#34;&gt;A Second Solution&lt;/h2&gt;
+&lt;hr&gt;
+&lt;p&gt;Now entering Kadane&amp;rsquo;s algorithm. I&amp;rsquo;m don&amp;rsquo;t have a formal background in Computer Science, so I didn&amp;rsquo;t have the benefit of already being exposed to Kadane&amp;rsquo;s algorithm upon first encountering &amp;ldquo;The Maximum Subarray Problem&amp;rdquo;. The way Kadane&amp;rsquo;s algorithm works is actually very similar to the prefix sum method, and while it performs about the same, the code looks much cleaner. It works by keeping track of sums as you iterate through the array (&lt;em&gt;go figure&lt;/em&gt;).&lt;/p&gt;
+&lt;p&gt;Consider iterating through the list manually with a working subarray, trying to find the max subarray. Kadane&amp;rsquo;s algorithm says you have two options at each step:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Ditch your current working subarray and start a new working subarray array with the next element.&lt;/li&gt;
+&lt;li&gt;Keep your current working subarray and add append the next element to it.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Phrased like this, all we have left is to figure out how to decide between these choices. Because the problem is concerned with the maximum &lt;em&gt;sum&lt;/em&gt; of all subarrays, all we need to do is check to see if the next element will make our sum larger than it already is. If our current sum is larger, we stick with option 1, and if our would-be sum is larger, we go with option 2. The real beauty of this solution is that you can implement it in such a way that the edge cases are taken care of without any additional logic! Such an implementation might look like:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;def maxSubArray(self, nums):
+        &amp;quot;&amp;quot;&amp;quot;
+        Finds maximum sum of all contiguous subarrays
+        using Kadane&#39;s Algorithm
+
+        input:
+            `nums`: array of integers
+        
+        returns:
+            `max(nums)`: integer
+        &amp;quot;&amp;quot;&amp;quot;
+        # start at second element 
+        for i in range(1,len(nums)):
+
+            # increase the local sum if next number increases it
+            if nums[i-1]+nums[i] &amp;gt; nums[i]:
+                nums[i] = nums[i-1]+nums[i]
+
+            # otherwise, start new local sum
+            else:
+                nums[i] = nums[i]
+
+        # Return the max of all local max subarray sums
+        return max(nums)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is purposefully lengthy to draw a comparison to the options above. Making it short and sweet, we get a very eloquent solution:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;def maxSubArray(self, nums):
+        &amp;quot;&amp;quot;&amp;quot;
+        Finds maximum sum of all contiguous subarrays
+        using Kadane&#39;s Algorithm
+
+        input:
+            `nums`: array of integers
+        
+        returns:
+            `max(nums)`: integer
+        &amp;quot;&amp;quot;&amp;quot;
+        for i in range(1,len(nums)):
+            nums[i] = max(nums[i-1]+nums[i], nums[i])
+        return max(nums)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Just like any algorithm problem, there are trade-offs to the solutions. Because of what I can only assume is overhead in accessing Python lists by indices, Kadane&amp;rsquo;s algorithm is actually &lt;em&gt;slower&lt;/em&gt; than the solution using prefix sums. This totally shocked me, but the difference is only 20ms by Leetcode&amp;rsquo;s measurement, so there probably isn&amp;rsquo;t much difference. The implementations of Kadane&amp;rsquo;s modifies the &lt;code&gt;nums&lt;/code&gt; array, but since Python is weird, new items are created on the heap and the pointers are modified to point to the new elements. In a statically typed language, Kadane&amp;rsquo;s would beat out Prefix Sums in terms of memory, but they still rank the same in runtime complexity (that is &lt;code&gt;O(n)&lt;/code&gt;).&lt;/p&gt;
+</description>
+    </item>
     
   </channel>
 </rss>
