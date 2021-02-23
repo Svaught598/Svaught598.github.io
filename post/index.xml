@@ -13,12 +13,323 @@
     </image>
     
     <item>
+      <title>NES Emulation: Part 1 - 6502 Addressing Modes</title>
+      <link>/post/addr-modes-6502/</link>
+      <pubDate>Fri, 21 Aug 2020 16:15:43 -0700</pubDate>
+      <guid>/post/addr-modes-6502/</guid>
+      <description>&lt;hr&gt;
+&lt;h2 id=&#34;flappy-bird---snes-edition&#34;&gt;Flappy Bird - SNES Edition&lt;/h2&gt;
+&lt;p&gt;It was probably about a year ago when I learned that it was possible to inject code into the SNES by manipulating CPU registers with complex actions in Super Mario World. It is insane that someone was able to 
+&lt;a href=&#34;https://www.youtube.com/watch?v=hB6eY73sLV0&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;recreate Flappy Bird in SMW&lt;/a&gt; reusing assets from the the original game. You read that right. Go watch the video, it&amp;rsquo;s awesome.
+I had to learn more about this stuff. Who wouldn&amp;rsquo;t want to know how Flappy Bird was successfully injected into a 1990 title with &lt;em&gt;nothing but a controller&lt;/em&gt;? That stuff is interesting, but SNES is a huge undertaking for a first emulator, so I opted to build the much friendlier father: the NES.
+I plan on writing a few posts to detail areas I found confusing. Maybe some more documentation on this stuff out there will prevent the all-too common questions of &amp;ldquo;Why is flag 4 always set?&amp;rdquo; and &amp;ldquo;Why does the stack pointer start at 0xFD&amp;rdquo; from popping up on r/EmuDev. Questions like these actually have incredibly straightforward answers, but the absolute mass of confusing documentation makes it hard to pin down something tangible. My goal here is to create a documentation akin to the 
+&lt;a href=&#34;http://www.obelisk.me.uk/6502/reference.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;6502 Documentation at obelisk.me.uk&lt;/a&gt; strictly for areas I found confusing. And it&amp;rsquo;s not like the documentation was bad! It just seems like most of it is meant as a reference for writing 6502 assembly, not for writing something that will read 6502 bytecode.&lt;/p&gt;
+&lt;h3 id=&#34;addressing-modes-in-the-6502&#34;&gt;Addressing Modes in the 6502&lt;/h3&gt;
+&lt;p&gt;Ahh, now for the meat and potatoes of it all: Addressing modes! Well, what is an addressing mode? The 6502 has actually has a fairly minimal number of instructions, and most are very simple operations (left/right bitshift, set/clear flags, load to accumulator, etc&amp;hellip;). In order to get the most out of this relatively small instruction set, the 6502 provides multiple &lt;em&gt;addressing modes&lt;/em&gt; to target different sections of memory. Some modes use less cycles than others and were preferable since speed was (and to some degree still is) a &lt;strong&gt;big deal&lt;/strong&gt;.
+But before we get into the addressing modes, maybe we should consider how the 6502 works at a high level. Essentially, the CPU does the following things over and over again:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;fetch byte from address pointed to by program counter&lt;/li&gt;
+&lt;li&gt;decode and execute that byte.
+I mean, it&amp;rsquo;s actually more complicated than that, but this is a distilled truth of the CPU. Since the instructions (or &lt;em&gt;Opcodes&lt;/em&gt;) are a single byte, that gives us 256 different instructions. But some of those bytes are unused, so we only have 151 opcodes, 56 of which are unique. After taking out the opcodes with &lt;em&gt;Implied&lt;/em&gt; addressing (which is tantamount to &lt;em&gt;no&lt;/em&gt; addressing), you get something like 32 instructions that can operate according to various addressing modes.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;implied&#34;&gt;Implied&lt;/h3&gt;
+&lt;p&gt;This is probably the simplest addressing mode to talk about. You know how CPU&amp;rsquo;s have flags, and some instructions simply set/clear a particular flag? Those instructions don&amp;rsquo;t target memory addresses, but rather a specific component of the CPU, and use Implied Mode Addressing. Some opcodes using this mode are &lt;code&gt;INX&lt;/code&gt;, &lt;code&gt;PHA&lt;/code&gt;, and &lt;code&gt;SEC&lt;/code&gt;. No additional data is read upon execution of opcodes with this addressing mode; the program counter is incremented by 1 and the next opcode is fetched.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x18&lt;/code&gt; (CLC)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;&amp;amp;carryFlag&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;accumulator&#34;&gt;Accumulator&lt;/h3&gt;
+&lt;p&gt;This is another easy addressing mode to talk about! Basically, any opcode using this addressing mode does all of its work on the accumulator. &lt;code&gt;ROR&lt;/code&gt;, an opcode that uses this addressing mode to rotate the accumulator to the right (i.e., bitshifting 1 place to the right, and wrapping bit 0 around to fill the void left by bit 7). Similar to Implied, this mode doesn&amp;rsquo;t read any extra data after the opcode, and you can make the argument that the target address is the &amp;ldquo;address&amp;rdquo; of the accumulator.&lt;/p&gt;
+&lt;table&gt;
+&lt;tbody&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x0A&lt;/code&gt; (ASL)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;&amp;amp;accumulator&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;immediate&#34;&gt;Immediate&lt;/h3&gt;
+&lt;p&gt;Ok, this bad boy is where we start reading in data! Basically, the byte that &lt;strong&gt;immediately&lt;/strong&gt; follows the opcode in memory is our &amp;ldquo;target&amp;rdquo;. So the target address is PC + 1, where PC (Program Counter) is the location of the executing opcode. The following table shows &lt;code&gt;0xFF&lt;/code&gt; being loaded into the accumulator.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0xA9&lt;/code&gt; (LDA)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0xFF&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;PC + 1&lt;/code&gt;&lt;td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;relative&#34;&gt;Relative&lt;/h3&gt;
+&lt;p&gt;Relative addressing is used predominantly (entirely?) in branching instructions to skip over segments of code conditionally. These instructions take the byte following the opcode, and add it to the program counter to produce a target address. The only catch is that signed arithmetic is used, so the program counter can also jump backwards depending on the value of the next byte.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x90&lt;/code&gt; (BCC)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x02&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;PC + 0x02&lt;/code&gt;&lt;td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;zero-page&#34;&gt;Zero Page&lt;/h3&gt;
+&lt;p&gt;Zero Page Addressing always accesses the &lt;code&gt;0x00&lt;/code&gt; page of the address space, meaning it never undergoes a page break and only requires a single byte to specify. This makes it really performant, but also very limited. The byte immediately following the opcode makes up the lower byte of the &amp;ldquo;target address&amp;rdquo;.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x84&lt;/code&gt; (STY)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0xC2&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x00C2&lt;/code&gt;&lt;td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;zero-page-x--zero-page-y&#34;&gt;Zero Page, X &amp;amp; Zero Page, Y&lt;/h3&gt;
+&lt;p&gt;Zero Page, X &amp;amp; Zero Page, Y are both just the regular Zero Page addressing mode with the contents of register X or Y being added to the &amp;ldquo;Target Address&amp;rdquo;. If the addition causes the &amp;ldquo;Target Address&amp;rdquo; to cross a page boundary, the upper byte is discarded such that the final address is still on the zero page.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;Y Register&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0xB6&lt;/code&gt; (LDX)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0xEA&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x60&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;&lt;code&gt;0x004A&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;absolute&#34;&gt;Absolute&lt;/h3&gt;
+&lt;p&gt;Absolute addressing takes the two bytes after the opcode and use them to construct a target address. The first byte is the lower byte, and the second byte is the higher byte.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Lower Byte&lt;/th&gt;
+        &lt;th&gt;Upper Byte&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0xED&lt;/code&gt; (SBC)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0xB3&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x21&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;&lt;code&gt;0x21B3&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;absolute-x--absolute-y&#34;&gt;Absolute, X &amp;amp; Absolute Y&lt;/h3&gt;
+&lt;p&gt;These two addressing modes are so similar they might as well be the same. Both of them find the Absolute Target Address (detailed just above) and add either register X or Y to it.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Lower Byte&lt;/th&gt;
+        &lt;th&gt;Upper Byte&lt;/th&gt;
+        &lt;th&gt;X Register&lt;/th&gt;
+        &lt;th&gt;ABS Address&lt;/th&gt;
+        &lt;th&gt;Target Address&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0xFD&lt;/code&gt; (SBC)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x13&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x4B&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;&lt;code&gt;0x20&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x4B13&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x4B33&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;indirect&#34;&gt;Indirect&lt;/h3&gt;
+&lt;p&gt;So far, none of the addressing modes have been very complicated: that starts change with Indirect Addressing. You know how a lot of beginner programmers get hung up on pointers? Well, Indirect addressing uses pointers. A first address is obtained similarly to Absolute, and is used as a pointer to a second space in memory, where the &amp;ldquo;Target Address&amp;rdquo; is read from. The 6502 - an 8 bit machine with 16 bit address space - has no way of supporting 16 bit arithmetic, so crossing page boundaries (e.g. reading &lt;code&gt;0x01FF&lt;/code&gt; and then reading &lt;code&gt;0x0200&lt;/code&gt; takes an additional cycle. Be it intentional or a bug, this extra cycle isn&amp;rsquo;t taken when loading the &amp;ldquo;target address&amp;rdquo;, so the address wraps around to the same page. Clear as mud? Maybe the following table will be easier to understand.&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Lower Byte&lt;/th&gt;
+        &lt;th&gt;Upper Byte&lt;/th&gt;
+        &lt;th&gt;ABS Address&lt;/th&gt;
+        &lt;th&gt;Target Lower Byte&lt;/th&gt;
+        &lt;th&gt;Target Upper Byte&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x6C&lt;/code&gt; (JMP)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0xFF&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x34&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;&lt;code&gt;0x34FF&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x34FF&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x3400&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;indirect-x&#34;&gt;Indirect, X&lt;/h3&gt;
+&lt;p&gt;This addressing mode is kind of like a combination of Zero Page X &amp;amp; Indirect. First, the Zero Page X address is read. Afterwards, this address is used to find the &amp;ldquo;Target Address&amp;rdquo;. And in the spirit of the original Indirect bug/feature, if the Zero Page X address is &lt;code&gt;0x00FF&lt;/code&gt;, the second byte is loaded from &lt;code&gt;0x0000&lt;/code&gt; instead of &lt;code&gt;0x0100&lt;/code&gt;&lt;/p&gt;
+&lt;table&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;X Register&lt;/th&gt;
+        &lt;th&gt;Zero Page X&lt;/th&gt;
+        &lt;th&gt;Target Lower Byte&lt;/th&gt;
+        &lt;th&gt;Target Upper Byte&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x81&lt;/code&gt; (STA)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x55&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x35&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;&lt;code&gt;0x0090&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x0090&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x0091&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;indirect-y&#34;&gt;Indirect, Y&lt;/h3&gt;
+&lt;p&gt;This addressing mode is kind of like a combination of Zero Page &amp;amp; Indirect. With an extra Y Register Addition. After a Zero Page address is read, it is used to find the &amp;ldquo;Target Address&amp;rdquo;. Finally, the contents of the Y Register are added to this &amp;ldquo;Target Address&amp;rdquo;.&lt;/p&gt;
+&lt;figure&gt;
+&lt;table style=&#34;table-layout: fixed ; width: 100%;&#34;&gt;
+    &lt;tr&gt;
+        &lt;th&gt;Opcode&lt;/th&gt;
+        &lt;th&gt;Next Byte&lt;/th&gt;
+        &lt;th&gt;Zero Page&lt;/th&gt;
+        &lt;th&gt;Target Lower Byte&lt;/th&gt;
+        &lt;th&gt;Target Upper Byte&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;code&gt;0x11&lt;/code&gt; (ORA)&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x76&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;code&gt;0x0076&lt;/code&gt;&lt;td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x0076&lt;/code&gt;&lt;/td&gt;
+        &lt;td&gt;read from &lt;code&gt;0x0077&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/figure&gt;
+&lt;h2 id=&#34;sample-code&#34;&gt;Sample Code&lt;/h2&gt;
+&lt;p&gt;Below are my implementations of these addressing modes in C++. I chose to treat each mode as a function that returns the target address and have handling of reading/writing local to the opcode function.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Immediate
+u16 CPU::IMM(){
+    u16 temp = PC + 1;
+    PC += 2;
+    return temp;
+}
+
+// Accumulator
+u16 CPU::ACC(){
+    PC += 1;
+    return ACCUMULATOR_ADDRESS;
+}
+
+// Relative
+u16 CPU::REL(){
+    s16 address = PC;
+    s8 offset = read(PC + 1);
+    address += offset + 2;
+    return (u16) address;
+}
+
+// Zero Page
+u16 CPU::ZPG(){
+    u8 address = read(PC + 1);
+    PC += 2;
+    return (u16) address;
+}
+
+// Zero Page X
+u16 CPU::ZPX(){
+    u16 address = read(PC + 1);
+    address = (address + X) &amp;amp; 0xFF;
+    PC += 2;
+    return address;
+}
+
+// Zero Page Y
+u16 CPU::ZPY(){
+    u16 address = read(PC + 1);
+    address = (address + Y) &amp;amp; 0xFF;
+    PC += 2;
+    return address;
+}
+
+// Absolute
+u16 CPU::ABS(){
+    u16 LSN = read(PC + 1);
+    u16 MSN = read(PC + 2);
+    u32 address = LSN + (MSN &amp;lt;&amp;lt; 8);
+    PC += 3;
+    return address;
+}
+
+// Absolute X
+u16 CPU::ABX(){
+    u32 address = ABS();
+    return address + X;
+}
+
+// Absolute Y
+u16 CPU::ABY(){
+    u32 address = ABS();
+    return address + Y;
+}
+
+// Indirect
+u16 CPU::IND(){
+    u16 ABS_LSN = read(PC + 1);
+    u16 ABS_MSN = read(PC + 2);
+    u16 ABS_address = (ABS_MSN &amp;lt;&amp;lt; 8) + ABS_LSN;
+
+    // AN INDIRECT JUMP MUST NEVER USE A VECTOR BEGINNING ON THE LAST BYTE OF A PAGE
+    u16 address, LSN, MSN;
+    if ((ABS_address &amp;amp; 0xFF) == 0xFF){
+        LSN = read(ABS_address);
+        MSN = read(ABS_address &amp;amp; 0xFF00);
+        address = (MSN &amp;lt;&amp;lt; 8) + LSN;
+    } else {
+        LSN = read(ABS_address);
+        MSN = read(ABS_address + 1);
+        address = (MSN &amp;lt;&amp;lt; 8) + LSN;
+    }
+    PC += 2;
+    return address;
+}
+
+// Indirect X
+u16 CPU::IDX(){
+    u16 address = (read(PC + 1) + X) &amp;amp; 0xFF;
+    u16 LSN = read(address);
+    u16 MSN = read((address + 1) &amp;amp; 0xFF);
+    address = (MSN &amp;lt;&amp;lt; 8) + LSN;
+    PC += 2;
+    return address;
+}
+
+// Indirect Y
+u16 CPU::IDY(){
+    u16 temp = read(PC + 1);
+    u16 LSN = read(temp);
+    u16 MSN = read((temp + 1) &amp;amp; 0xFF);
+    u16 address = LSN + (MSN &amp;lt;&amp;lt; 8) + Y;
+    PC += 2;
+    return address;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>The Maximum Subarray Problem</title>
       <link>/post/max_subarray/</link>
       <pubDate>Fri, 21 Aug 2020 16:15:43 -0700</pubDate>
       <guid>/post/max_subarray/</guid>
       <description>&lt;hr&gt;
-&lt;p&gt;This problem is a classic. Or so I&amp;rsquo;m told. The maximum subarray problem is involves finding the maximum sum out of all contiguous subarrays. It&amp;rsquo;s one of those problems that seems straightforward, and then boom - complicated edge cases seemingly appear from the heavens to say &amp;ldquo;Not so fast!&amp;rdquo;. But that&amp;rsquo;s the essence of algorithm problems, right? They assess a developer&amp;rsquo;s ability to see beyond the scope of some given test cases and construct a robust solution.&lt;/p&gt;
+&lt;p&gt;This problem is a classic. Or so I&amp;rsquo;m told. The maximum subarray problem is involves finding the maximum sum out of all contiguous subarrays. It&amp;rsquo;s one of those problems that seems straightforward, and then boom - complicated edge cases seemingly appear from the heavens to say &amp;ldquo;Not so fast!&amp;quot;. But that&amp;rsquo;s the essence of algorithm problems, right? They assess a developer&amp;rsquo;s ability to see beyond the scope of some given test cases and construct a robust solution.&lt;/p&gt;
 &lt;h2 id=&#34;the-problem&#34;&gt;The Problem&lt;/h2&gt;
 &lt;hr&gt;
 &lt;p&gt;Given an integer array &lt;code&gt;nums&lt;/code&gt;, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.&lt;/p&gt;
