@@ -681,7 +681,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
 </ol>
 <h3 id="implied">Implied</h3>
 <p>This is probably the simplest addressing mode to talk about. You know how CPU&rsquo;s have flags, and some instructions simply set/clear a particular flag? Those instructions don&rsquo;t target memory addresses, but rather a specific component of the CPU, and use Implied Mode Addressing. Some opcodes using this mode are <code>INX</code>, <code>PHA</code>, and <code>SEC</code>. No additional data is read upon execution of opcodes with this addressing mode; the program counter is incremented by 1 and the next opcode is fetched.</p>
-<table style="width:70% !important; margin-left:15% !important; margin-right:15% !important;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Target Address</th>
@@ -693,7 +693,8 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
 </table>
 <h3 id="accumulator">Accumulator</h3>
 <p>This is another easy addressing mode to talk about! Basically, any opcode using this addressing mode does all of its work on the accumulator. <code>ROR</code>, an opcode that uses this addressing mode to rotate the accumulator to the right (i.e., bitshifting 1 place to the right, and wrapping bit 0 around to fill the void left by bit 7). Similar to Implied, this mode doesn&rsquo;t read any extra data after the opcode, and you can make the argument that the target address is the &ldquo;address&rdquo; of the accumulator.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
+<tbody>
     <tr>
         <th>Opcode</th>
         <th>Target Address</th>
@@ -702,10 +703,11 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
         <td><code>0x0A</code> (ASL)</td>
         <td><code>&amp;accumulator</code></td>
     </tr>
+</tbody>
 </table>
 <h3 id="immediate">Immediate</h3>
 <p>Ok, this bad boy is where we start reading in data! Basically, the byte that <strong>immediately</strong> follows the opcode in memory is our &ldquo;target&rdquo;. So the target address is PC + 1, where PC (Program Counter) is the location of the executing opcode. The following table shows <code>0xFF</code> being loaded into the accumulator.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -714,12 +716,12 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0xA9</code> (LDA)</td>
         <td><code>0xFF</code></td>
-        <td><code>PC + 1</code></td>
+        <td><code>PC + 1</code><td>
     </tr>
 </table>
 <h3 id="relative">Relative</h3>
 <p>Relative addressing is used predominantly (entirely?) in branching instructions to skip over segments of code conditionally. These instructions take the byte following the opcode, and add it to the program counter to produce a target address. The only catch is that signed arithmetic is used, so the program counter can also jump backwards depending on the value of the next byte.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -728,12 +730,12 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0x90</code> (BCC)</td>
         <td><code>0x02</code></td>
-        <td><code>PC + 0x02</code></td>
+        <td><code>PC + 0x02</code><td>
     </tr>
 </table>
 <h3 id="zero-page">Zero Page</h3>
 <p>Zero Page Addressing always accesses the <code>0x00</code> page of the address space, meaning it never undergoes a page break and only requires a single byte to specify. This makes it really performant, but also very limited. The byte immediately following the opcode makes up the lower byte of the &ldquo;target address&rdquo;.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -742,12 +744,12 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0x84</code> (STY)</td>
         <td><code>0xC2</code></td>
-        <td><code>0x00C2</code></td>
+        <td><code>0x00C2</code><td>
     </tr>
 </table>
 <h3 id="zero-page-x--zero-page-y">Zero Page, X &amp; Zero Page, Y</h3>
 <p>Zero Page, X &amp; Zero Page, Y are both just the regular Zero Page addressing mode with the contents of register X or Y being added to the &ldquo;Target Address&rdquo;. If the addition causes the &ldquo;Target Address&rdquo; to cross a page boundary, the upper byte is discarded such that the final address is still on the zero page.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -757,13 +759,13 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0xB6</code> (LDX)</td>
         <td><code>0xEA</code></td>
-        <td><code>0x60</code></td>
+        <td><code>0x60</code><td>
         <td><code>0x004A</code></td>
     </tr>
 </table>
 <h3 id="absolute">Absolute</h3>
 <p>Absolute addressing takes the two bytes after the opcode and use them to construct a target address. The first byte is the lower byte, and the second byte is the higher byte.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Lower Byte</th>
@@ -773,13 +775,13 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0xED</code> (SBC)</td>
         <td><code>0xB3</code></td>
-        <td><code>0x21</code></td>
+        <td><code>0x21</code><td>
         <td><code>0x21B3</code></td>
     </tr>
 </table>
 <h3 id="absolute-x--absolute-y">Absolute, X &amp; Absolute Y</h3>
 <p>These two addressing modes are so similar they might as well be the same. Both of them find the Absolute Target Address (detailed just above) and add either register X or Y to it.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Lower Byte</th>
@@ -791,7 +793,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0xFD</code> (SBC)</td>
         <td><code>0x13</code></td>
-        <td><code>0x4B</code></td>
+        <td><code>0x4B</code><td>
         <td><code>0x20</code></td>
         <td><code>0x4B13</code></td>
         <td><code>0x4B33</code></td>
@@ -799,7 +801,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
 </table>
 <h3 id="indirect">Indirect</h3>
 <p>So far, none of the addressing modes have been very complicated: that starts change with Indirect Addressing. You know how a lot of beginner programmers get hung up on pointers? Well, Indirect addressing uses pointers. A first address is obtained similarly to Absolute, and is used as a pointer to a second space in memory, where the &ldquo;Target Address&rdquo; is read from. The 6502 - an 8 bit machine with 16 bit address space - has no way of supporting 16 bit arithmetic, so crossing page boundaries (e.g. reading <code>0x01FF</code> and then reading <code>0x0200</code> takes an additional cycle. Be it intentional or a bug, this extra cycle isn&rsquo;t taken when loading the &ldquo;target address&rdquo;, so the address wraps around to the same page. Clear as mud? Maybe the following table will be easier to understand.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Lower Byte</th>
@@ -811,7 +813,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0x6C</code> (JMP)</td>
         <td><code>0xFF</code></td>
-        <td><code>0x34</code></td>
+        <td><code>0x34</code><td>
         <td><code>0x34FF</code></td>
         <td>read from <code>0x34FF</code></td>
         <td>read from <code>0x3400</code></td>
@@ -819,7 +821,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
 </table>
 <h3 id="indirect-x">Indirect, X</h3>
 <p>This addressing mode is kind of like a combination of Zero Page X &amp; Indirect. First, the Zero Page X address is read. Afterwards, this address is used to find the &ldquo;Target Address&rdquo;. And in the spirit of the original Indirect bug/feature, if the Zero Page X address is <code>0x00FF</code>, the second byte is loaded from <code>0x0000</code> instead of <code>0x0100</code></p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<table>
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -831,7 +833,7 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0x81</code> (STA)</td>
         <td><code>0x55</code></td>
-        <td><code>0x35</code></td>
+        <td><code>0x35</code><td>
         <td><code>0x0090</code></td>
         <td>read from <code>0x0090</code></td>
         <td>read from <code>0x0091</code></td>
@@ -839,7 +841,8 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
 </table>
 <h3 id="indirect-y">Indirect, Y</h3>
 <p>This addressing mode is kind of like a combination of Zero Page &amp; Indirect. With an extra Y Register Addition. After a Zero Page address is read, it is used to find the &ldquo;Target Address&rdquo;. Finally, the contents of the Y Register are added to this &ldquo;Target Address&rdquo;.</p>
-<table style="width:90%; margin-left:5%; margin-right:5%;">
+<figure>
+<table style="table-layout: fixed ; width: 100%;">
     <tr>
         <th>Opcode</th>
         <th>Next Byte</th>
@@ -850,11 +853,12 @@ I mean, it&rsquo;s actually more complicated than that, but this is a distilled 
     <tr>
         <td><code>0x11</code> (ORA)</td>
         <td><code>0x76</code></td>
-        <td><code>0x0076</code></td>
+        <td><code>0x0076</code><td>
         <td>read from <code>0x0076</code></td>
         <td>read from <code>0x0077</code></td>
     </tr>
 </table>
+</figure>
 <h2 id="sample-code">Sample Code</h2>
 <p>Below are my implementations of these addressing modes in C++. I chose to treat each mode as a function that returns the target address and have handling of reading/writing local to the opcode function.</p>
 <pre><code class="language-cpp">// Immediate
