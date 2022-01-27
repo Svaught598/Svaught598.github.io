@@ -39,7 +39,7 @@
         "react-particles-js": "^3.4.1",
         "responsive-loader": "^2.3.0",
         "svg-sprite-loader": "^6.0.7",
-        "three": "^0.129.0",
+        "three": "^0.137.0",
         "webp-loader": "^0.6.0"
     },
     "devDependencies": {
